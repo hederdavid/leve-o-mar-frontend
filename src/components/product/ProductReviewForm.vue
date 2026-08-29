@@ -55,14 +55,15 @@ function handleSubmit() {
 </script>
 
 <template>
-  <div class="p-6 bg-[#F7F4EE] rounded-3xl border border-[#E6E1D6] space-y-4 animate-fade-in shadow-inner">
+  <div class="p-4 sm:p-6 bg-[#F7F4EE] rounded-2xl sm:rounded-3xl border border-[#E6E1D6] space-y-4 animate-fade-in shadow-inner">
     <div class="flex items-center justify-between">
-      <h4 class="font-serif-editorial text-lg font-bold text-[#0A2B42]">
+      <h4 class="font-serif-editorial text-base sm:text-lg font-bold text-[#0A2B42]">
         Deixe sua Avaliação de Colecionador
       </h4>
       <button
         type="button"
-        class="p-1 text-[#5A738E] hover:text-[#0A2B42] rounded-full"
+        aria-label="Fechar formulário"
+        class="w-11 h-11 text-[#5A738E] hover:text-[#0A2B42] rounded-full flex items-center justify-center cursor-pointer"
         @click="emit('cancel')"
       >
         <X :size="18" />
@@ -71,21 +72,22 @@ function handleSubmit() {
 
     <form @submit.prevent="handleSubmit" class="space-y-4">
       
-      <!-- Seletor de Estrelas Interativo -->
+      <!-- Seletor de Estrelas Interativo com Touch Targets de 44px -->
       <div>
         <label class="text-xs font-bold text-[#0A2B42] block mb-1.5">Sua Nota:</label>
-        <div class="flex items-center gap-1.5">
+        <div class="flex items-center gap-1">
           <button
             v-for="star in 5"
             :key="star"
             type="button"
-            class="p-1 text-[#F59E0B] hover:scale-125 transition-transform cursor-pointer"
+            :aria-label="`Avaliar com ${star} estrelas`"
+            class="w-11 h-11 flex items-center justify-center text-[#F59E0B] hover:scale-110 active:scale-95 transition-transform cursor-pointer"
             @mouseenter="hoverRating = star"
             @mouseleave="hoverRating = 0"
             @click="setRating(star)"
           >
             <Star
-              :size="24"
+              :size="26"
               :class="[
                 (hoverRating ? star <= hoverRating : star <= rating)
                   ? 'fill-[#F59E0B] text-[#F59E0B]'
@@ -93,7 +95,7 @@ function handleSubmit() {
               ]"
             />
           </button>
-          <span class="text-xs font-bold text-[#0A2B42] ml-2">{{ rating }} de 5 estrelas</span>
+          <span class="text-xs font-bold text-[#0A2B42] ml-1">{{ rating }} de 5</span>
         </div>
       </div>
 
@@ -106,7 +108,7 @@ function handleSubmit() {
             type="text"
             required
             placeholder="Ex: Carolina Mendes"
-            class="w-full text-xs px-3.5 py-2.5 rounded-xl bg-white border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D]"
+            class="w-full text-xs sm:text-sm px-3.5 py-3 rounded-xl bg-white border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D] min-h-[44px]"
           />
         </div>
         <div class="sm:col-span-4">
@@ -116,14 +118,14 @@ function handleSubmit() {
             type="text"
             required
             placeholder="Ex: São Paulo"
-            class="w-full text-xs px-3.5 py-2.5 rounded-xl bg-white border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D]"
+            class="w-full text-xs sm:text-sm px-3.5 py-3 rounded-xl bg-white border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D] min-h-[44px]"
           />
         </div>
         <div class="sm:col-span-2">
           <label class="text-xs font-semibold text-[#5A738E] block mb-1">UF</label>
           <select
             v-model="uf"
-            class="w-full text-xs px-2.5 py-2.5 rounded-xl bg-white border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D]"
+            class="w-full text-xs sm:text-sm px-2.5 py-3 rounded-xl bg-white border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D] min-h-[44px]"
           >
             <option v-for="state in ufs" :key="state" :value="state">{{ state }}</option>
           </select>
@@ -137,7 +139,7 @@ function handleSubmit() {
           v-model="title"
           type="text"
           placeholder="Ex: A cor da água é inacreditável!"
-          class="w-full text-xs px-3.5 py-2.5 rounded-xl bg-white border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D]"
+          class="w-full text-xs sm:text-sm px-3.5 py-3 rounded-xl bg-white border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D] min-h-[44px]"
         />
       </div>
 
@@ -148,16 +150,16 @@ function handleSubmit() {
           v-model="comment"
           rows="3"
           required
-          placeholder="Conte como a garrafa transformou o seu ambiente ou o que você sentiu ao receber..."
-          class="w-full text-xs px-3.5 py-2.5 rounded-xl bg-white border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D]"
+          placeholder="Conte como a garrafa transformou o seu ambiente..."
+          class="w-full text-xs sm:text-sm px-3.5 py-3 rounded-xl bg-white border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D]"
         />
       </div>
 
-      <!-- Ações -->
-      <div class="flex items-center justify-end gap-3 pt-2">
+      <!-- Ações com Touch Targets Mínimos -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-2">
         <button
           type="button"
-          class="px-4 py-2 text-xs font-semibold text-[#5A738E] hover:text-[#0A2B42]"
+          class="px-4 py-3 text-xs font-semibold text-[#5A738E] hover:text-[#0A2B42] text-center min-h-[44px]"
           @click="emit('cancel')"
         >
           Cancelar
@@ -165,7 +167,7 @@ function handleSubmit() {
         <button
           type="submit"
           :disabled="isSubmitting"
-          class="px-6 py-2.5 bg-[#0B3C5D] hover:bg-[#0A2B42] text-white text-xs font-bold rounded-full shadow transition-all flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+          class="px-6 py-3.5 bg-[#0B3C5D] hover:bg-[#0A2B42] text-white text-xs font-bold rounded-full shadow transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 min-h-[44px] cursor-pointer"
         >
           <Send :size="14" />
           <span>{{ isSubmitting ? 'Enviando...' : 'Publicar Avaliação' }}</span>

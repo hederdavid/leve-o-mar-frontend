@@ -7,12 +7,8 @@ import {
   Search,
   User,
   ShoppingBag,
-  Compass,
-  Sparkles,
-  MapPin,
   Menu,
-  X,
-  ChevronDown
+  X
 } from 'lucide-vue-next'
 
 const emit = defineEmits<{
@@ -25,11 +21,11 @@ const isMobileMenuOpen = ref(false)
 
 const categories = [
   { name: 'Todas as Praias', path: '/colecao' },
+  { name: 'Mapa de Destinos 🗺️', path: '/mapa' },
+  { name: 'Personalizar Rótulo ✨', path: '/personalizar', highlight: true },
   { name: 'Nordeste', path: '/colecao' },
   { name: 'Sudeste', path: '/colecao' },
   { name: 'Sul & Centro', path: '/colecao' },
-  { name: 'Personalizar Rótulo ✨', path: '/personalizar', highlight: true },
-  { name: 'Mapa de Destinos 🗺️', path: '/mapa' },
   { name: 'Nossa História', path: '/sobre' }
 ]
 </script>
@@ -41,35 +37,36 @@ const categories = [
     <TopAnnouncementBar />
 
     <!-- Barra Principal: Busca, Logo Central e Ações -->
-    <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
-      <div class="flex items-center justify-between gap-4">
+    <header class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5">
+      <div class="flex items-center justify-between gap-2 sm:gap-4">
         
-        <!-- Lado Esquerdo: Busca e Menu Mobile -->
-        <div class="flex items-center gap-3">
+        <!-- Lado Esquerdo: Busca e Menu Mobile (Touch Targets >= 44px) -->
+        <div class="flex items-center gap-1 sm:gap-3">
           <button
             type="button"
-            aria-label="Abrir menu"
-            class="md:hidden p-2 text-[#0A2B42] hover:bg-[#EBE7DE] rounded-xl"
+            aria-label="Abrir menu de navegação"
+            class="md:hidden w-11 h-11 text-[#0A2B42] hover:bg-[#EBE7DE] rounded-xl flex items-center justify-center cursor-pointer transition-colors"
             @click="isMobileMenuOpen = !isMobileMenuOpen"
           >
             <component :is="isMobileMenuOpen ? X : Menu" :size="22" />
           </button>
 
-          <!-- Botão de Busca estilo E-commerce -->
+          <!-- Botão de Busca estilo E-commerce Desktop -->
           <button
             type="button"
             aria-label="Buscar destinos"
-            class="hidden sm:flex items-center gap-2.5 px-4 py-2 rounded-full bg-white border border-[#D6CFC0] text-[#5A738E] hover:border-[#0B3C5D] text-xs transition-all shadow-sm w-48 lg:w-64 cursor-pointer"
+            class="hidden sm:flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-white border border-[#D6CFC0] text-[#5A738E] hover:border-[#0B3C5D] text-xs transition-all shadow-sm w-44 lg:w-64 cursor-pointer min-h-[44px]"
             @click="emit('openSearch')"
           >
             <Search :size="15" class="text-[#0B3C5D]" />
             <span class="truncate">Buscar praia ou estado...</span>
           </button>
 
+          <!-- Botão de Busca Mobile -->
           <button
             type="button"
             aria-label="Buscar no mobile"
-            class="sm:hidden p-2 text-[#0A2B42] hover:bg-[#EBE7DE] rounded-full"
+            class="sm:hidden w-11 h-11 text-[#0A2B42] hover:bg-[#EBE7DE] rounded-full flex items-center justify-center cursor-pointer transition-colors"
             @click="emit('openSearch')"
           >
             <Search :size="20" />
@@ -77,32 +74,32 @@ const categories = [
         </div>
 
         <!-- Centro: Logotipo Nobre do Leve o Mar -->
-        <div class="flex flex-col items-center select-none text-center">
+        <div class="flex flex-col items-center select-none text-center px-1">
           <router-link to="/" class="flex flex-col items-center group">
-            <span class="font-serif-editorial text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0A2B42] group-hover:text-[#0B3C5D] transition-colors leading-none">
+            <span class="font-serif-editorial text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-[#0A2B42] group-hover:text-[#0B3C5D] transition-colors leading-none">
               LEVE O MAR
             </span>
-            <span class="text-[8px] sm:text-[9px] font-bold tracking-[0.28em] text-[#E86A58] uppercase mt-1">
+            <span class="text-[7px] sm:text-[9px] font-bold tracking-[0.24em] sm:tracking-[0.28em] text-[#E86A58] uppercase mt-0.5 sm:mt-1">
               Águas do Brasil em Garrafas
             </span>
           </router-link>
         </div>
 
         <!-- Lado Direito: Minha Conta e Carrinho (Aventuras) -->
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-1 sm:gap-3">
           <router-link
             to="/checkout"
-            class="hidden sm:flex items-center gap-1.5 p-2 text-[#0A2B42] hover:text-[#E86A58] hover:bg-[#EBE7DE] rounded-full transition-all text-xs font-semibold"
+            class="hidden sm:flex items-center gap-1.5 px-3 py-2 text-[#0A2B42] hover:text-[#E86A58] hover:bg-[#EBE7DE] rounded-full transition-all text-xs font-semibold min-h-[44px]"
           >
             <User :size="18" />
             <span class="hidden lg:inline">Minha Conta</span>
           </router-link>
 
-          <!-- Botão Sacola / Carrinho -->
+          <!-- Botão Sacola / Carrinho (Touch Target Seguro) -->
           <button
             type="button"
             aria-label="Abrir carrinho"
-            class="flex items-center gap-2 bg-[#0B3C5D] hover:bg-[#0A2B42] text-white px-4 py-2.5 rounded-full text-xs font-bold tracking-wide shadow-md transition-all active:scale-95 cursor-pointer"
+            class="flex items-center gap-1.5 sm:gap-2 bg-[#0B3C5D] hover:bg-[#0A2B42] text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs font-bold tracking-wide shadow-md transition-all active:scale-95 cursor-pointer min-h-[44px]"
             @click="cartStore.openDrawer"
           >
             <ShoppingBag :size="16" />
@@ -119,15 +116,15 @@ const categories = [
       </div>
     </header>
 
-    <!-- Barra de Categorias / Menu Horizontal E-commerce -->
+    <!-- Barra de Categorias / Menu Horizontal E-commerce Desktop -->
     <nav class="hidden md:block border-t border-[#EBE7DE] bg-white/70 py-2">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center space-x-8 text-xs font-bold tracking-wider uppercase text-[#0A2B42]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center space-x-6 lg:space-x-8 text-xs font-bold tracking-wider uppercase text-[#0A2B42]">
         <router-link
           v-for="cat in categories"
           :key="cat.name"
           :to="cat.path"
           :class="[
-            'transition-colors py-1 hover:text-[#E86A58]',
+            'transition-colors py-1.5 hover:text-[#E86A58] flex items-center min-h-[44px]',
             cat.highlight ? 'text-[#E86A58] font-extrabold' : ''
           ]"
         >
@@ -136,18 +133,18 @@ const categories = [
       </div>
     </nav>
 
-    <!-- Menu Mobile Dropdown -->
+    <!-- Menu Mobile Dropdown Acessível com Touch Targets >= 44px -->
     <div
       v-if="isMobileMenuOpen"
-      class="md:hidden bg-white border-t border-[#E6E1D6] p-4 space-y-3 shadow-xl animate-fade-in"
+      class="md:hidden bg-white border-t border-[#E6E1D6] p-4 space-y-1 shadow-xl animate-fade-in"
     >
       <router-link
         v-for="cat in categories"
         :key="cat.name"
         :to="cat.path"
         :class="[
-          'block py-2 text-sm font-bold border-b border-[#F0EDE4]',
-          cat.highlight ? 'text-[#E86A58]' : 'text-[#0A2B42]'
+          'flex items-center px-3 py-3 rounded-xl text-sm font-bold border-b border-[#F0EDE4] min-h-[44px]',
+          cat.highlight ? 'text-[#E86A58] bg-[#FDF3F1]' : 'text-[#0A2B42] hover:bg-[#F7F4EE]'
         ]"
         @click="isMobileMenuOpen = false"
       >

@@ -6,28 +6,28 @@ const announcements = [
   {
     id: 1,
     icon: Truck,
-    text: 'Frete Grátis para todo o Brasil em compras a partir de R$ 79,90',
+    text: 'Frete Grátis acima de R$ 79,90',
     link: '/colecao',
     highlight: 'Aproveite'
   },
   {
     id: 2,
     icon: Sparkles,
-    text: 'Ganhe 10% OFF na sua primeira garrafa usando o cupom MAR10',
+    text: 'Ganhe 10% OFF com o cupom MAR10',
     link: '/colecao',
-    highlight: 'Copiar Cupom'
+    highlight: 'Copiar'
   },
   {
     id: 3,
     icon: CreditCard,
-    text: 'Parcele em até 6x sem juros no cartão ou ganhe 5% no Pix',
+    text: 'Até 6x sem juros ou 5% no Pix',
     link: '/personalizar',
     highlight: 'Personalizar'
   },
   {
     id: 4,
     icon: ShieldCheck,
-    text: 'Garantia de Chegada Segura em embalagem antiimpacto para vidro',
+    text: 'Garantia de Chegada Segura do Vidro',
     link: '/sobre',
     highlight: 'Saiba Mais'
   }
@@ -61,44 +61,44 @@ onUnmounted(stopTimer)
 
 <template>
   <div
-    class="bg-[#0B3C5D] text-white text-xs py-2 px-4 select-none relative z-50 border-b border-white/10"
+    class="bg-[#0B3C5D] text-white text-[11px] sm:text-xs py-1.5 sm:py-2 px-2 sm:px-4 select-none relative z-50 border-b border-white/10"
     @mouseenter="stopTimer"
     @mouseleave="startTimer"
   >
     <div class="max-w-7xl mx-auto flex items-center justify-between">
       
-      <!-- Seta Esquerda -->
+      <!-- Seta Esquerda (Touch Target mínimo 44x44px no mobile) -->
       <button
         type="button"
         aria-label="Anúncio anterior"
-        class="p-1 hover:bg-white/15 rounded-full transition-colors cursor-pointer"
+        class="w-10 h-10 sm:w-8 sm:h-8 hover:bg-white/15 rounded-full transition-colors cursor-pointer flex items-center justify-center flex-shrink-0"
         @click="prev"
       >
-        <ChevronLeft :size="15" />
+        <ChevronLeft :size="16" />
       </button>
 
       <!-- Conteúdo do Anúncio Animado -->
       <div class="flex-1 flex items-center justify-center text-center overflow-hidden px-2">
         <router-link
           :to="announcements[currentIndex]?.link || '/colecao'"
-          class="inline-flex items-center gap-2 group hover:underline font-medium transition-all"
+          class="inline-flex items-center gap-1.5 sm:gap-2 group hover:underline font-medium transition-all max-w-full"
         >
           <component :is="announcements[currentIndex]?.icon" :size="14" class="text-[#F59E0B] flex-shrink-0" />
           <span class="truncate">{{ announcements[currentIndex]?.text }}</span>
-          <span class="hidden sm:inline text-[#F59E0B] font-bold underline text-[11px] group-hover:text-white transition-colors">
+          <span class="text-[#F59E0B] font-bold underline text-[10px] sm:text-[11px] group-hover:text-white transition-colors flex-shrink-0 ml-1">
             {{ announcements[currentIndex]?.highlight }} &rarr;
           </span>
         </router-link>
       </div>
 
-      <!-- Seta Direita -->
+      <!-- Seta Direita (Touch Target mínimo 44x44px no mobile) -->
       <button
         type="button"
         aria-label="Próximo anúncio"
-        class="p-1 hover:bg-white/15 rounded-full transition-colors cursor-pointer"
+        class="w-10 h-10 sm:w-8 sm:h-8 hover:bg-white/15 rounded-full transition-colors cursor-pointer flex items-center justify-center flex-shrink-0"
         @click="next"
       >
-        <ChevronRight :size="15" />
+        <ChevronRight :size="16" />
       </button>
 
     </div>

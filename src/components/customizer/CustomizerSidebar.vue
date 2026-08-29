@@ -1,20 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { Product } from '@/types/product'
 import { useCartStore } from '@/stores/cart'
-import {
-  Sparkles,
-  ShoppingBag,
-  Gift,
-  Check,
-  Compass,
-  Droplet,
-  Type
-} from 'lucide-vue-next'
+import type { Product } from '@/types/product'
+import { Sparkles, ShoppingBag, Droplet, PenTool, Check, Heart } from 'lucide-vue-next'
+import { toast } from 'vue-sonner'
 
 interface Props {
   products: Product[]
-  selectedProduct: Product
+  selectedProduct: Product | null
 }
 
 const props = defineProps<Props>()
@@ -34,7 +27,6 @@ const recipientName = ref('')
 const customMessage = ref('')
 const fontStyle = ref<'serif' | 'cursive' | 'sans'>('cursive')
 const glassType = ref<'lapidado' | 'fosco' | 'ambar'>('lapidado')
-const includeCertificate = ref(true)
 
 function handleStateChange() {
   emit('updateCustomization', {
@@ -46,44 +38,39 @@ function handleStateChange() {
 }
 
 function handleAddToCart() {
+  if (!props.selectedProduct) return
+
   cartStore.addItem(props.selectedProduct, {
-    recipientName: recipientName.value || undefined,
-    giftMessage: customMessage.value || undefined,
-    includeCollectorCertificate: includeCertificate.value
+    recipientName: recipientName.value.trim() || undefined,
+    giftMessage: customMessage.value.trim() || undefined,
+    fontStyle: fontStyle.value,
+    glassType: glassType.value
   })
 }
 </script>
 
 <template>
-  <div class="card-maritimo p-6 sm:p-8 bg-white space-y-6">
+  <div class="card-maritimo p-4 sm:p-6 lg:p-8 bg-white space-y-5 sm:space-y-6 shadow-md">
     
-    <div>
-      <span class="text-xs font-bold tracking-widest text-[#E86A58] uppercase block mb-1">
-        Ateliê Leve o Mar
-      </span>
-      <h2 class="font-serif-editorial text-2xl sm:text-3xl font-bold text-[#0A2B42]">
-        Personalize sua Garrafa
-      </h2>
-      <p class="text-xs text-[#5A738E] mt-1">
-        Escolha o destino e grave sua dedicatória personalizada no rótulo de algodão.
-      </p>
-    </div>
+    <!-- PASSO 1: Escolha do Destino e Água -->
+    <div class="space-y-3">
+      <div class="flex items-center justify-between">
+        <label class="text-xs font-bold uppercase tracking-wider text-[#0A2B42] flex items-center gap-1.5">
+          <Droplet :size="14" class="text-[#0B3C5D]" />
+          <span>1. Escolha a Praia</span>
+        </label>
+        <span class="text-[10px] text-[#5A738E] font-medium">{{ products.length }} praias disponíveis</span>
+      </div>
 
-    <!-- PASSO 1: Escolha da Praia / Destino -->
-    <div class="space-y-3 pt-2">
-      <label class="text-xs font-bold uppercase tracking-wider text-[#0A2B42] flex items-center gap-1.5">
-        <Compass :size="14" class="text-[#0B3C5D]" />
-        <span>1. Escolha a Praia de Origem</span>
-      </label>
-
-      <div class="grid grid-cols-2 gap-2.5 max-h-48 overflow-y-auto pr-1">
+      <!-- Carrossel / Grid de Destinos Selecionáveis com Touch Targets de 44px -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
         <button
           v-for="p in products"
           :key="p.id"
           type="button"
           :class="[
-            'p-2.5 rounded-2xl border text-left flex items-center gap-2.5 transition-all cursor-pointer',
-            selectedProduct.id === p.id
+            'p-2.5 rounded-2xl border text-left flex items-center gap-2.5 transition-all cursor-pointer min-h-[48px]',
+            selectedProduct?.id === p.id
               ? 'border-[#0B3C5D] bg-[#F7F4EE] shadow-sm ring-1 ring-[#0B3C5D]'
               : 'border-[#E6E1D6] hover:bg-[#FAF8F5]'
           ]"
@@ -92,7 +79,7 @@ function handleAddToCart() {
           <img
             :src="p.bottleImage"
             :alt="p.beachName"
-            class="w-8 h-8 rounded-lg object-cover border border-[#D6CFC0]"
+            class="w-9 h-9 rounded-lg object-cover border border-[#D6CFC0] flex-shrink-0"
           />
           <div class="min-w-0 flex-1">
             <div class="text-xs font-bold text-[#0A2B42] truncate">{{ p.beachName }}</div>
@@ -113,7 +100,7 @@ function handleAddToCart() {
         <button
           type="button"
           :class="[
-            'p-2.5 rounded-xl border text-center transition-all text-xs font-semibold',
+            'p-2.5 rounded-xl border flex items-center justify-center transition-all text-xs font-semibold min-h-[44px] cursor-pointer',
             glassType === 'lapidado'
               ? 'border-[#0B3C5D] bg-[#0B3C5D] text-white shadow'
               : 'border-[#E6E1D6] bg-[#F7F4EE] text-[#5A738E] hover:bg-[#EBE7DE]'
@@ -126,7 +113,7 @@ function handleAddToCart() {
         <button
           type="button"
           :class="[
-            'p-2.5 rounded-xl border text-center transition-all text-xs font-semibold',
+            'p-2.5 rounded-xl border flex items-center justify-center transition-all text-xs font-semibold min-h-[44px] cursor-pointer',
             glassType === 'fosco'
               ? 'border-[#0B3C5D] bg-[#0B3C5D] text-white shadow'
               : 'border-[#E6E1D6] bg-[#F7F4EE] text-[#5A738E] hover:bg-[#EBE7DE]'
@@ -139,7 +126,7 @@ function handleAddToCart() {
         <button
           type="button"
           :class="[
-            'p-2.5 rounded-xl border text-center transition-all text-xs font-semibold',
+            'p-2.5 rounded-xl border flex items-center justify-center transition-all text-xs font-semibold min-h-[44px] cursor-pointer',
             glassType === 'ambar'
               ? 'border-[#0B3C5D] bg-[#0B3C5D] text-white shadow'
               : 'border-[#E6E1D6] bg-[#F7F4EE] text-[#5A738E] hover:bg-[#EBE7DE]'
@@ -151,106 +138,118 @@ function handleAddToCart() {
       </div>
     </div>
 
-    <!-- PASSO 3: Dedicatória & Tipografia no Rótulo -->
+    <!-- PASSO 3: Tipografia do Rótulo -->
     <div class="space-y-3 pt-4 border-t border-[#F0EDE4]">
       <label class="text-xs font-bold uppercase tracking-wider text-[#0A2B42] flex items-center gap-1.5">
-        <Gift :size="14" class="text-[#E86A58]" />
-        <span>3. Caligrafia do Rótulo</span>
+        <PenTool :size="14" class="text-[#0B3C5D]" />
+        <span>3. Estilo de Caligrafia</span>
       </label>
 
-      <div class="space-y-2.5">
+      <div class="grid grid-cols-3 gap-2">
+        <button
+          type="button"
+          :class="[
+            'p-2.5 rounded-xl border flex flex-col items-center justify-center transition-all min-h-[48px] cursor-pointer',
+            fontStyle === 'cursive'
+              ? 'border-[#0B3C5D] bg-[#0B3C5D] text-white shadow'
+              : 'border-[#E6E1D6] bg-[#F7F4EE] text-[#5A738E] hover:bg-[#EBE7DE]'
+          ]"
+          @click="fontStyle = 'cursive'; handleStateChange()"
+        >
+          <span class="italic font-serif text-sm">Cursiva</span>
+          <span class="text-[9px] opacity-80">Afetiva</span>
+        </button>
+
+        <button
+          type="button"
+          :class="[
+            'p-2.5 rounded-xl border flex flex-col items-center justify-center transition-all min-h-[48px] cursor-pointer',
+            fontStyle === 'serif'
+              ? 'border-[#0B3C5D] bg-[#0B3C5D] text-white shadow'
+              : 'border-[#E6E1D6] bg-[#F7F4EE] text-[#5A738E] hover:bg-[#EBE7DE]'
+          ]"
+          @click="fontStyle = 'serif'; handleStateChange()"
+        >
+          <span class="font-serif font-bold text-xs">Clássica</span>
+          <span class="text-[9px] opacity-80">Elegante</span>
+        </button>
+
+        <button
+          type="button"
+          :class="[
+            'p-2.5 rounded-xl border flex flex-col items-center justify-center transition-all min-h-[48px] cursor-pointer',
+            fontStyle === 'sans'
+              ? 'border-[#0B3C5D] bg-[#0B3C5D] text-white shadow'
+              : 'border-[#E6E1D6] bg-[#F7F4EE] text-[#5A738E] hover:bg-[#EBE7DE]'
+          ]"
+          @click="fontStyle = 'sans'; handleStateChange()"
+        >
+          <span class="font-sans font-bold text-xs uppercase">Moderna</span>
+          <span class="text-[9px] opacity-80">Minimal</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PASSO 4: Textos da Dedicatória -->
+    <div class="space-y-4 pt-4 border-t border-[#F0EDE4]">
+      <label class="text-xs font-bold uppercase tracking-wider text-[#0A2B42] flex items-center gap-1.5">
+        <Heart :size="14" class="text-[#E86A58]" />
+        <span>4. Mensagem Gravada no Papel Algodão</span>
+      </label>
+
+      <div class="space-y-3">
         <div>
-          <label class="text-[11px] font-semibold text-[#5A738E] block mb-1">Para quem é o presente?</label>
+          <label class="text-[11px] font-semibold text-[#5A738E] block mb-1">Nome do Destinatário ou do Lar</label>
           <input
             v-model="recipientName"
             type="text"
-            placeholder="Ex: Para Mariana"
-            class="w-full text-xs px-3.5 py-2.5 rounded-xl bg-[#F7F4EE] border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D]"
+            maxlength="28"
+            placeholder="Ex: Família Medeiros"
+            class="w-full text-xs sm:text-sm px-3.5 py-3 rounded-xl bg-[#F7F4EE] border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D] min-h-[44px]"
             @input="handleStateChange"
           />
         </div>
 
         <div>
-          <label class="text-[11px] font-semibold text-[#5A738E] block mb-1">Mensagem Afetiva (Gravada ao vivo)</label>
-          <textarea
+          <label class="text-[11px] font-semibold text-[#5A738E] block mb-1">Dedicatória / Frase de Memória</label>
+          <input
             v-model="customMessage"
-            rows="2"
-            maxlength="90"
-            placeholder="Ex: Que a brisa de Noronha esteja sempre com você..."
-            class="w-full text-xs px-3.5 py-2.5 rounded-xl bg-[#F7F4EE] border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D]"
+            type="text"
+            maxlength="45"
+            placeholder="Ex: Onde o nosso amor começou..."
+            class="w-full text-xs sm:text-sm px-3.5 py-3 rounded-xl bg-[#F7F4EE] border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D] min-h-[44px]"
             @input="handleStateChange"
           />
-          <div class="text-right text-[10px] text-[#5A738E]">{{ customMessage.length }}/90 caracteres</div>
-        </div>
-
-        <!-- Estilo Tipográfico -->
-        <div>
-          <label class="text-[11px] font-semibold text-[#5A738E] block mb-1">Estilo de Caligrafia</label>
-          <div class="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              :class="[
-                'py-1.5 px-2 rounded-lg border text-xs font-serif italic transition-all',
-                fontStyle === 'cursive'
-                  ? 'border-[#0B3C5D] bg-[#F7F4EE] text-[#0B3C5D] font-bold'
-                  : 'border-[#E6E1D6] text-[#5A738E]'
-              ]"
-              @click="fontStyle = 'cursive'; handleStateChange()"
-            >
-              Cursiva
-            </button>
-
-            <button
-              type="button"
-              :class="[
-                'py-1.5 px-2 rounded-lg border text-xs font-serif-editorial transition-all',
-                fontStyle === 'serif'
-                  ? 'border-[#0B3C5D] bg-[#F7F4EE] text-[#0B3C5D] font-bold'
-                  : 'border-[#E6E1D6] text-[#5A738E]'
-              ]"
-              @click="fontStyle = 'serif'; handleStateChange()"
-            >
-              Serif Clássica
-            </button>
-
-            <button
-              type="button"
-              :class="[
-                'py-1.5 px-2 rounded-lg border text-xs font-sans transition-all',
-                fontStyle === 'sans'
-                  ? 'border-[#0B3C5D] bg-[#F7F4EE] text-[#0B3C5D] font-bold'
-                  : 'border-[#E6E1D6] text-[#5A738E]'
-              ]"
-              @click="fontStyle = 'sans'; handleStateChange()"
-            >
-              Minimal
-            </button>
-          </div>
+          <span class="text-[10px] text-[#5A738E] mt-1 block">
+            {{ 45 - customMessage.length }} caracteres restantes
+          </span>
         </div>
       </div>
     </div>
 
-    <!-- Preço & Botão de Adicionar ao Carrinho -->
-    <div class="pt-4 border-t border-[#E6E1D6] space-y-4">
-      <div class="flex items-baseline justify-between">
+    <!-- Resumo e Botão de Adicionar com Touch Target Mínimo -->
+    <div class="pt-4 border-t border-[#E6E1D6] space-y-3">
+      <div class="flex items-center justify-between">
         <div>
-          <span class="text-[10px] text-[#5A738E] uppercase tracking-wider block">Total Personalizado</span>
-          <span class="font-serif-editorial text-2xl sm:text-3xl font-bold text-[#0A2B42]">
-            R$ {{ selectedProduct.price.toFixed(2).replace('.', ',') }}
-          </span>
+          <span class="text-[10px] text-[#5A738E] uppercase tracking-wider block">Valor com Personalização</span>
+          <div class="font-serif-editorial text-2xl font-bold text-[#0B3C5D]">
+            R$ {{ selectedProduct ? selectedProduct.price.toFixed(2).replace('.', ',') : '149,00' }}
+          </div>
         </div>
-        <span class="text-xs font-bold text-[#D97706] bg-[#FEF3C7] px-2.5 py-1 rounded-full">
-          Personalização Grátis
-        </span>
+        <div class="text-[10px] text-right text-[#5A738E]">
+          <span class="text-[#0B3C5D] font-bold block">✨ Caligrafia de Cortesia</span>
+          <span>Frete Grátis acima de R$ 79,90</span>
+        </div>
       </div>
 
       <button
         type="button"
-        class="w-full py-4 bg-[#0B3C5D] hover:bg-[#0A2B42] text-white font-bold text-sm rounded-full shadow-xl transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+        :disabled="!selectedProduct"
+        class="w-full py-4 bg-[#0B3C5D] hover:bg-[#0A2B42] text-white font-bold text-xs sm:text-sm rounded-full shadow-xl transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 min-h-[48px] cursor-pointer"
         @click="handleAddToCart"
       >
-        <ShoppingBag :size="18" />
-        <span>Adicionar Garrafa Personalizada</span>
+        <ShoppingBag :size="16" />
+        <span>Adicionar Garrafa Personalizada ao Carrinho</span>
       </button>
     </div>
 

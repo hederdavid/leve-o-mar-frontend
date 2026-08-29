@@ -409,48 +409,48 @@ onMounted(() => {
               <h2 class="font-serif-editorial text-xl font-bold text-[#0A2B42]">Forma de Pagamento</h2>
             </div>
 
-            <!-- Abas de Pagamento (Cartão, Pix, Boleto) -->
-            <div class="grid grid-cols-3 gap-3">
+            <!-- Abas de Pagamento (Cartão, Pix, Boleto) com Touch-Targets Responsivos -->
+            <div class="grid grid-cols-3 gap-2 sm:gap-3">
               <button
                 type="button"
                 :class="[
-                  'py-3 px-2 rounded-2xl border flex flex-col items-center gap-1.5 transition-all text-xs font-bold',
+                  'py-2.5 sm:py-3 px-1 sm:px-2 rounded-xl sm:rounded-2xl border flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition-all text-[10px] sm:text-xs font-bold min-h-[48px] cursor-pointer',
                   paymentMethod === 'CREDIT_CARD'
                     ? 'border-[#0B3C5D] bg-[#0B3C5D] text-white shadow-md'
                     : 'border-[#E6E1D6] bg-[#F7F4EE] text-[#5A738E] hover:bg-[#EBE7DE]'
                 ]"
                 @click="paymentMethod = 'CREDIT_CARD'"
               >
-                <CreditCard :size="18" />
-                <span>Cartão de Crédito</span>
+                <CreditCard :size="16" />
+                <span class="truncate">Cartão</span>
               </button>
 
               <button
                 type="button"
                 :class="[
-                  'py-3 px-2 rounded-2xl border flex flex-col items-center gap-1.5 transition-all text-xs font-bold',
+                  'py-2.5 sm:py-3 px-1 sm:px-2 rounded-xl sm:rounded-2xl border flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition-all text-[10px] sm:text-xs font-bold min-h-[48px] cursor-pointer',
                   paymentMethod === 'PIX'
                     ? 'border-[#0B3C5D] bg-[#0B3C5D] text-white shadow-md'
                     : 'border-[#E6E1D6] bg-[#F7F4EE] text-[#5A738E] hover:bg-[#EBE7DE]'
                 ]"
                 @click="paymentMethod = 'PIX'"
               >
-                <QrCode :size="18" />
-                <span>Pix Instantâneo</span>
+                <QrCode :size="16" />
+                <span class="truncate">Pix</span>
               </button>
 
               <button
                 type="button"
                 :class="[
-                  'py-3 px-2 rounded-2xl border flex flex-col items-center gap-1.5 transition-all text-xs font-bold',
+                  'py-2.5 sm:py-3 px-1 sm:px-2 rounded-xl sm:rounded-2xl border flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition-all text-[10px] sm:text-xs font-bold min-h-[48px] cursor-pointer',
                   paymentMethod === 'BOLETO'
                     ? 'border-[#0B3C5D] bg-[#0B3C5D] text-white shadow-md'
                     : 'border-[#E6E1D6] bg-[#F7F4EE] text-[#5A738E] hover:bg-[#EBE7DE]'
                 ]"
                 @click="paymentMethod = 'BOLETO'"
               >
-                <FileText :size="18" />
-                <span>Boleto Bancário</span>
+                <FileText :size="16" />
+                <span class="truncate">Boleto</span>
               </button>
             </div>
 
