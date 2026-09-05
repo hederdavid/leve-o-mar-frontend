@@ -2,6 +2,8 @@
 import { ref } from 'vue'
 import type { Product } from '@/types/product'
 import { useCartStore } from '@/stores/cart'
+import { useWishlistStore } from '@/stores/wishlist'
+import { orderService, type ShippingCalculationResult } from '@/services/orderService'
 import {
   Star,
   Plus,
@@ -12,7 +14,12 @@ import {
   Droplet,
   Compass,
   Sparkles,
-  Gift
+  Gift,
+  Heart,
+  Truck,
+  Loader2,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-vue-next'
 
 interface Props {
@@ -27,11 +34,49 @@ const emit = defineEmits<{
 }>()
 
 const cartStore = useCartStore()
+const wishlistStore = useWishlistStore()
 
 const quantity = ref(1)
 const isCustomGift = ref(false)
 const giftMessage = ref('')
 const recipientName = ref('')
+
+const shippingCep = ref('')
+const isCalculatingShipping = ref(false)
+const shippingResult = ref<ShippingCalculationResult | null>(null)
+const shippingError = ref<string | null>(null)
+
+function formatCepInput(event: Event) {
+  const input = event.target as HTMLInputElement
+  let val = input.value.replace(/\D/g, '')
+  if (val.length > 8) val = val.slice(0, 8)
+  if (val.length > 5) {
+    val = `${val.slice(0, 5)}-${val.slice(5)}`
+  }
+  shippingCep.value = val
+  if (shippingError.value) shippingError.value = null
+}
+
+async function handleCalculateShipping() {
+  const clean = shippingCep.value.replace(/\D/g, '')
+  if (clean.length !== 8) {
+    shippingError.value = 'Digite um CEP válido com 8 dígitos.'
+    return
+  }
+
+  isCalculatingShipping.value = true
+  shippingError.value = null
+  shippingResult.value = null
+
+  try {
+    const res = await orderService.lookupShippingAndAddress(clean)
+    shippingResult.value = res
+  } catch (err: unknown) {
+    shippingError.value = err instanceof Error ? err.message : 'Não foi possível calcular o frete para este CEP.'
+  } finally {
+    isCalculatingShipping.value = false
+  }
+}
 
 function increment() {
   if (quantity.value < props.product.stock) {
@@ -174,15 +219,27 @@ function handleAddToCart() {
         </button>
       </div>
 
-      <!-- Botão Adicionar ao Carrinho -->
-      <button
-        type="button"
-        class="flex-1 py-3.5 px-6 rounded-full bg-[#0B3C5D] hover:bg-[#0A2B42] text-white font-bold text-sm shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2"
-        @click="handleAddToCart"
-      >
-        <ShoppingBag :size="18" />
-        <span>Adicionar às Minhas Aventuras</span>
-      </button>
+      <!-- Botão Adicionar ao Carrinho & Favoritar -->
+      <div class="flex-1 flex gap-2">
+        <button
+          type="button"
+          class="flex-1 py-3.5 px-6 rounded-full bg-[#0B3C5D] hover:bg-[#0A2B42] text-white font-bold text-sm shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+          @click="handleAddToCart"
+        >
+          <ShoppingBag :size="18" />
+          <span>Adicionar às Minhas Aventuras</span>
+        </button>
+
+        <button
+          type="button"
+          :aria-label="wishlistStore.isInWishlist(product.id) ? 'Remover dos favoritos' : 'Salvar nas praias desejadas'"
+          class="w-12 h-12 rounded-full border border-[#D6CFC0] bg-white hover:bg-[#F7F4EE] flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95 flex-shrink-0"
+          :class="wishlistStore.isInWishlist(product.id) ? 'text-[#E86A58]' : 'text-[#8A9BA8] hover:text-[#0A2B42]'"
+          @click="wishlistStore.toggleWishlist(product)"
+        >
+          <Heart :size="20" :fill="wishlistStore.isInWishlist(product.id) ? 'currentColor' : 'none'" />
+        </button>
+      </div>
     </div>
 
     <!-- Selos de Confiança -->
@@ -194,6 +251,84 @@ function handleAddToCart() {
       <div class="flex items-center gap-2">
         <ShieldCheck :size="15" class="text-[#0B3C5D] flex-shrink-0" />
         <span>Certificado de autenticidade</span>
+      </div>
+    </div>
+
+    <!-- Calculadora de Frete em Tempo Real com ViaCEP -->
+    <div class="pt-4 border-t border-[#E6E1D6] space-y-3">
+      <div class="flex items-center gap-2">
+        <Truck :size="16" class="text-[#0B3C5D]" />
+        <h3 class="text-xs font-bold text-[#0A2B42] uppercase tracking-wider">
+          Calcular Frete e Prazo de Entrega
+        </h3>
+      </div>
+
+      <div class="flex gap-2">
+        <div class="relative flex-1">
+          <input
+            :value="shippingCep"
+            type="text"
+            maxlength="9"
+            placeholder="00000-000"
+            class="w-full text-xs px-3.5 py-2.5 rounded-xl bg-white border border-[#D6CFC0] text-[#0A2B42] placeholder-[#8A9BA8] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D] font-mono"
+            @input="formatCepInput"
+            @keyup.enter="handleCalculateShipping"
+          />
+        </div>
+
+        <button
+          type="button"
+          :disabled="isCalculatingShipping"
+          class="px-5 py-2.5 rounded-xl bg-[#0B3C5D] hover:bg-[#0A2B42] text-white text-xs font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer flex-shrink-0"
+          @click="handleCalculateShipping"
+        >
+          <Loader2 v-if="isCalculatingShipping" :size="14" class="animate-spin" />
+          <span>{{ isCalculatingShipping ? 'Consultando...' : 'Calcular' }}</span>
+        </button>
+      </div>
+
+      <!-- Erro ao calcular CEP -->
+      <div
+        v-if="shippingError"
+        class="flex items-center gap-2 p-2.5 bg-[#FDF3F1] border border-[#F5C2BC] rounded-xl text-xs text-[#E86A58]"
+      >
+        <AlertCircle :size="15" class="flex-shrink-0" />
+        <span>{{ shippingError }}</span>
+      </div>
+
+      <!-- Opções Calculadas via API -->
+      <div
+        v-if="shippingResult"
+        class="p-3.5 bg-white rounded-xl border border-[#E6E1D6] space-y-3 animate-fade-in"
+      >
+        <div class="flex items-center justify-between text-xs border-b border-[#F0EDE4] pb-2">
+          <div class="flex items-center gap-1.5 font-bold text-[#0A2B42]">
+            <CheckCircle2 :size="14" class="text-[#05BFDB]" />
+            <span>Destino: {{ shippingResult.address.city }} - {{ shippingResult.address.state }}</span>
+          </div>
+          <span class="text-[10px] text-[#5A738E] font-mono">CEP: {{ shippingResult.address.cep }}</span>
+        </div>
+
+        <div class="space-y-2">
+          <div
+            v-for="opt in shippingResult.options"
+            :key="opt.id"
+            class="flex items-center justify-between p-2 rounded-lg bg-[#F7F4EE] border border-[#EBE7DE] text-xs hover:border-[#0B3C5D] transition-colors"
+          >
+            <div>
+              <div class="font-bold text-[#0A2B42]">{{ opt.name }}</div>
+              <div class="text-[10px] text-[#5A738E]">{{ opt.carrier }} · Chega em até {{ opt.estimatedDays }} dias úteis</div>
+            </div>
+            <div class="text-right font-bold text-[#0B3C5D]">
+              R$ {{ opt.price.toFixed(2).replace('.', ',') }}
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 text-[10px] text-[#5A738E] pt-1">
+          <ShieldCheck :size="13" class="text-[#0B3C5D] flex-shrink-0" />
+          <span>Envio com berço de papel colmeia e seguro integral contra quebra de vidro.</span>
+        </div>
       </div>
     </div>
 

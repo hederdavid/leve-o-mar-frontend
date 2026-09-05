@@ -162,8 +162,9 @@ onUnmounted(stopAutoPlay)
 
           <!-- Pílula de Garantia da Oferta -->
           <div class="pt-1">
-            <div class="inline-block p-2 px-3.5 rounded-xl bg-white/70 backdrop-blur-sm border border-[#EBE7DE] text-[11px] sm:text-xs font-semibold text-[#5A738E] shadow-sm">
-              ✨ {{ slides[currentSlide]?.offerPillText }}
+            <div class="inline-flex items-center gap-1.5 p-2 px-3.5 rounded-xl bg-white/70 backdrop-blur-sm border border-[#EBE7DE] text-[11px] sm:text-xs font-semibold text-[#5A738E] shadow-sm">
+              <Sparkles :size="13" class="text-[#D97706]" />
+              <span>{{ slides[currentSlide]?.offerPillText }}</span>
             </div>
           </div>
 

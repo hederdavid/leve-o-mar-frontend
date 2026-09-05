@@ -47,6 +47,26 @@ const router = createRouter({
       path: '/mapa',
       name: 'map',
       component: () => import('../views/MapView.vue')
+    },
+    {
+      path: '/conta',
+      name: 'account',
+      component: () => import('../views/AccountView.vue')
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/LoginView.vue')
+    },
+    {
+      path: '/cadastro',
+      name: 'register',
+      component: () => import('../views/RegisterView.vue')
+    },
+    {
+      path: '/rastreio/:code?',
+      name: 'tracking',
+      component: () => import('../views/TrackingView.vue')
     }
   ]
 })

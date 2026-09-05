@@ -237,7 +237,10 @@ function handleAddToCart() {
           </div>
         </div>
         <div class="text-[10px] text-right text-[#5A738E]">
-          <span class="text-[#0B3C5D] font-bold block">✨ Caligrafia de Cortesia</span>
+          <span class="text-[#0B3C5D] font-bold flex items-center justify-end gap-1">
+            <Sparkles :size="12" />
+            <span>Caligrafia de Cortesia</span>
+          </span>
           <span>Frete Grátis acima de R$ 79,90</span>
         </div>
       </div>

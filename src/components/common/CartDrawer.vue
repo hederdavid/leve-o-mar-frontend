@@ -1,15 +1,49 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
-import confetti from 'canvas-confetti'
-import { X, Plus, Minus, Trash2, ShoppingBag, ShieldCheck, Sparkles, ArrowRight } from 'lucide-vue-next'
+import { mockAccessories } from '@/mocks/accessories'
+import type { Product } from '@/types/product'
+import {
+  X,
+  Plus,
+  Minus,
+  Trash2,
+  ShoppingBag,
+  ShieldCheck,
+  Sparkles,
+  ArrowRight,
+  Truck,
+  CheckCircle2,
+  Check
+} from 'lucide-vue-next'
 
 const router = useRouter()
 const cartStore = useCartStore()
-const isCheckingOut = ref(false)
 const isSuccessOrder = ref(false)
 const orderNumber = ref('')
+
+const FREE_SHIPPING_THRESHOLD = 79.9
+
+const freeShippingProgress = computed(() => {
+  return Math.min(100, Math.round((cartStore.subtotal / FREE_SHIPPING_THRESHOLD) * 100))
+})
+
+const remainingForFreeShipping = computed(() => {
+  return Math.max(0, FREE_SHIPPING_THRESHOLD - cartStore.subtotal)
+})
+
+const hasFreeShipping = computed(() => {
+  return cartStore.subtotal >= FREE_SHIPPING_THRESHOLD
+})
+
+function isAccessoryInCart(id: string): boolean {
+  return cartStore.items.some((i) => i.product.id === id)
+}
+
+function handleAddAccessory(acc: Product) {
+  cartStore.addItem(acc)
+}
 
 function goToCheckout() {
   cartStore.closeDrawer()
@@ -23,22 +57,23 @@ function handleFinish() {
 </script>
 
 <template>
-  <div
-    v-if="cartStore.isDrawerOpen"
-    class="fixed inset-0 z-50 overflow-hidden"
-    aria-labelledby="slide-over-title"
-    role="dialog"
-    aria-modal="true"
-  >
-    <!-- Overlay Escurecido com Blur -->
+  <Teleport to="body">
     <div
-      class="fixed inset-0 bg-[#0A2B42]/60 backdrop-blur-sm transition-opacity"
-      @click="cartStore.closeDrawer"
-    />
+      v-if="cartStore.isDrawerOpen"
+      class="fixed inset-0 z-[9999] overflow-hidden"
+      aria-labelledby="slide-over-title"
+      role="dialog"
+      aria-modal="true"
+    >
+      <!-- Overlay Escurecido com Blur -->
+      <div
+        class="fixed inset-0 bg-[#0A2B42]/60 backdrop-blur-sm transition-opacity"
+        @click="cartStore.closeDrawer"
+      />
 
-    <!-- Painel Lateral Deslizante (Ocupa 100% da tela em telas pequenas) -->
-    <div class="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
-      <div class="w-screen max-w-full sm:max-w-md bg-[#F7F4EE] border-l border-[#E6E1D6] shadow-2xl flex flex-col justify-between">
+      <!-- Painel Lateral Deslizante (Ocupa 100% da tela em telas pequenas) -->
+      <div class="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
+        <div class="w-screen max-w-full sm:max-w-md bg-[#F7F4EE] border-l border-[#E6E1D6] shadow-2xl flex flex-col justify-between">
         
         <!-- Cabeçalho do Carrinho -->
         <div class="p-4 sm:p-6 border-b border-[#E6E1D6] flex items-center justify-between bg-white/70 backdrop-blur-sm">
@@ -65,6 +100,27 @@ function handleFinish() {
           >
             <X :size="20" />
           </button>
+        </div>
+
+        <!-- Barra Dinâmica de Frete Grátis -->
+        <div class="px-4 sm:px-6 py-2.5 bg-[#EBE7DE]/70 border-b border-[#E6E1D6]">
+          <div class="flex items-center justify-between text-[11px] mb-1.5 font-medium">
+            <span v-if="!hasFreeShipping" class="flex items-center gap-1.5 text-[#0A2B42]">
+              <Truck :size="13" class="text-[#0B3C5D]" />
+              <span>Faltam <strong>R$ {{ remainingForFreeShipping.toFixed(2).replace('.', ',') }}</strong> para <strong>Frete Grátis</strong></span>
+            </span>
+            <span v-else class="flex items-center gap-1.5 text-[#0B3C5D] font-bold">
+              <CheckCircle2 :size="13" class="text-[#05BFDB]" />
+              <span>Frete Grátis com Seguro Vidro Desbloqueado!</span>
+            </span>
+            <span class="text-[10px] text-[#5A738E] font-bold font-mono">{{ freeShippingProgress }}%</span>
+          </div>
+          <div class="w-full h-1.5 bg-[#D6CFC0] rounded-full overflow-hidden">
+            <div
+              class="h-full bg-gradient-to-r from-[#05BFDB] to-[#0B3C5D] transition-all duration-500 rounded-full"
+              :style="{ width: `${freeShippingProgress}%` }"
+            />
+          </div>
         </div>
 
         <!-- Lista de Itens do Carrinho -->
@@ -195,6 +251,48 @@ function handleFinish() {
               </div>
             </div>
           </div>
+
+          <!-- Upsell 1-Clique: Acessórios & Complementos do Ateliê -->
+          <div v-if="cartStore.items.length > 0" class="pt-4 border-t border-[#E6E1D6] space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[#0A2B42] uppercase tracking-wider">
+                Complemente suas Garrafas
+              </span>
+              <span class="text-[10px] text-[#5A738E]">1-Clique para adicionar</span>
+            </div>
+
+            <div class="space-y-2">
+              <div
+                v-for="acc in mockAccessories"
+                :key="acc.id"
+                class="flex items-center justify-between p-2.5 bg-white rounded-xl border border-[#E6E1D6] gap-2.5 shadow-sm"
+              >
+                <img
+                  :src="acc.bottleImage"
+                  :alt="acc.name"
+                  class="w-11 h-11 object-cover rounded-lg border border-[#E6E1D6] flex-shrink-0"
+                />
+                <div class="flex-1 min-w-0">
+                  <h5 class="text-xs font-bold text-[#0A2B42] truncate">{{ acc.name }}</h5>
+                  <span class="text-[10px] text-[#5A738E] block truncate">{{ acc.categoryTag }}</span>
+                  <span class="text-xs font-bold text-[#0B3C5D]">
+                    R$ {{ acc.price.toFixed(2).replace('.', ',') }}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  :disabled="isAccessoryInCart(acc.id)"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer flex-shrink-0 disabled:cursor-default"
+                  :class="isAccessoryInCart(acc.id) ? 'bg-[#EBE7DE] text-[#5A738E]' : 'bg-[#0B3C5D] text-white hover:bg-[#0A2B42] active:scale-95'"
+                  @click="handleAddAccessory(acc)"
+                >
+                  <Check v-if="isAccessoryInCart(acc.id)" :size="13" />
+                  <Plus v-else :size="13" />
+                  <span>{{ isAccessoryInCart(acc.id) ? 'Na Sacola' : 'Adicionar' }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Rodapé do Carrinho com Totais & Botão de Checkout -->
@@ -234,4 +332,5 @@ function handleFinish() {
       </div>
     </div>
   </div>
+</Teleport>
 </template>

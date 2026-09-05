@@ -2,6 +2,7 @@
 import { RouterView } from 'vue-router'
 import { Toaster } from 'vue-sonner'
 import CookieConsentBanner from '@/components/common/CookieConsentBanner.vue'
+import SocialProofToast from '@/components/common/SocialProofToast.vue'
 </script>
 
 <template>
@@ -18,4 +19,5 @@ import CookieConsentBanner from '@/components/common/CookieConsentBanner.vue'
   />
   <RouterView />
   <CookieConsentBanner />
+  <SocialProofToast />
 </template>

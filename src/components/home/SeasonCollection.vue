@@ -4,12 +4,14 @@ import { mockProducts } from '@/mocks/products'
 import type { Product } from '@/types/product'
 import BottleVisual from '@/components/common/BottleVisual.vue'
 import { useCartStore } from '@/stores/cart'
-import { Plus } from 'lucide-vue-next'
+import { useWishlistStore } from '@/stores/wishlist'
+import { Plus, Heart } from 'lucide-vue-next'
 
 const activeFilter = ref<string>('Todas as Praias')
 const filters = ['Todas as Praias', 'Nordeste', 'Sul / Sudeste', 'Praias Paradisíacas', 'Lote Limitado']
 
 const cartStore = useCartStore()
+const wishlistStore = useWishlistStore()
 
 const filteredProducts = computed(() => {
   if (activeFilter.value === 'Todas as Praias') return mockProducts
@@ -65,6 +67,16 @@ function handleAddToCart(product: Product) {
           :key="product.id"
           class="card-maritimo flex flex-col justify-between p-5 relative overflow-hidden group"
         >
+          <button
+            type="button"
+            :aria-label="wishlistStore.isInWishlist(product.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'"
+            class="absolute top-4 left-4 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-90"
+            :class="wishlistStore.isInWishlist(product.id) ? 'text-[#E86A58]' : 'text-[#8A9BA8] hover:text-[#0A2B42]'"
+            @click.stop="wishlistStore.toggleWishlist(product)"
+          >
+            <Heart :size="16" :fill="wishlistStore.isInWishlist(product.id) ? 'currentColor' : 'none'" />
+          </button>
+
           <div
             v-if="product.isLimitedEdition"
             class="absolute top-4 right-4 z-20 px-2.5 py-0.5 rounded-full bg-[#E86A58] text-white text-[10px] font-bold tracking-wider uppercase shadow-sm"

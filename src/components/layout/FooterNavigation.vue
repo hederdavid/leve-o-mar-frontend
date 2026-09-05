@@ -65,7 +65,7 @@ function handleSubscribe() {
             Destinos
           </h4>
           <ul class="space-y-2.5 text-xs text-white/70">
-            <li><router-link to="/mapa" class="text-[#F59E0B] font-bold hover:text-white transition-colors">🗺️ Mapa de Praias</router-link></li>
+            <li><router-link to="/mapa" class="text-[#F59E0B] font-bold hover:text-white transition-colors">Mapa de Praias</router-link></li>
             <li><router-link to="/colecao" class="hover:text-white transition-colors">Nordeste</router-link></li>
             <li><router-link to="/colecao" class="hover:text-white transition-colors">Sul / Sudeste</router-link></li>
             <li><router-link to="/colecao" class="hover:text-white transition-colors">Praias Paradisíacas</router-link></li>
@@ -82,7 +82,7 @@ function handleSubscribe() {
             <li><router-link to="/#decor" class="hover:text-white transition-colors">Decor com Mar</router-link></li>
             <li><router-link to="/sobre" class="hover:text-white transition-colors">Como Funciona</router-link></li>
             <li><router-link to="/sobre" class="hover:text-white transition-colors">Sustentabilidade</router-link></li>
-            <li><router-link to="/colecao" class="hover:text-white transition-colors">Para Presentes</router-link></li>
+            <li><router-link to="/conta" class="hover:text-white transition-colors">O Farol (Minha Conta)</router-link></li>
           </ul>
         </div>
 
@@ -92,11 +92,10 @@ function handleSubscribe() {
               Suporte
             </h4>
             <ul class="space-y-2.5 text-xs text-white/70">
-              <li><a href="#" class="hover:text-white transition-colors">Rastrear Pedido</a></li>
+              <li><router-link to="/rastreio" class="hover:text-white transition-colors">Rastrear Garrafa</router-link></li>
+              <li><router-link to="/sobre#faq" class="hover:text-white transition-colors">FAQ</router-link></li>
               <li><a href="#" class="hover:text-white transition-colors">Política de Trocas</a></li>
-              <li><a href="#" class="hover:text-white transition-colors">FAQ</a></li>
               <li><a href="#" class="hover:text-white transition-colors">Contato</a></li>
-              <li><a href="#" class="hover:text-white transition-colors">Revenda</a></li>
             </ul>
           </div>
 

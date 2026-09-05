@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, RouterLink } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
+import { useOrdersStore } from '@/stores/orders'
+import { useAuthStore } from '@/stores/auth'
 import { orderService } from '@/services/orderService'
 import { demoUser } from '@/services/authService'
 import type { ShippingOption } from '@/types/cart'
+import type { Order } from '@/types/order'
 import InteractiveCreditCard from '@/components/checkout/InteractiveCreditCard.vue'
 import confetti from 'canvas-confetti'
 import { toast } from 'vue-sonner'
@@ -21,11 +24,16 @@ import {
   ShieldCheck,
   ChevronRight,
   User,
-  ShoppingBag
+  ShoppingBag,
+  Package
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const cartStore = useCartStore()
+const ordersStore = useOrdersStore()
+const authStore = useAuthStore()
+
+const createdOrder = ref<Order | null>(null)
 
 // Etapas do Checkout
 const currentStep = ref<number>(1) // 1: Identificação, 2: Endereço/Frete, 3: Pagamento, 4: Sucesso
@@ -83,12 +91,25 @@ function fillDemoUser() {
 async function searchCep() {
   isSearchingCep.value = true
   try {
-    const options = await orderService.calculateShipping(cep.value)
-    shippingOptions.value = options
-    selectedShipping.value = options[0] || null
-    toast.success('Frete calculado com proteção de vidro!')
-  } catch (err: any) {
-    toast.error(err.message || 'Erro ao consultar CEP.')
+    const result = await orderService.lookupShippingAndAddress(cep.value)
+    shippingOptions.value = result.options
+    selectedShipping.value = result.options[0] || null
+    if (result.address.city && result.address.city !== 'Sua Cidade') {
+      city.value = result.address.city
+    }
+    if (result.address.state) {
+      state.value = result.address.state
+    }
+    if (result.address.street) {
+      street.value = result.address.street
+    }
+    if (result.address.neighborhood) {
+      neighborhood.value = result.address.neighborhood
+    }
+    toast.success(`Frete calculado para ${result.address.city || 'seu destino'} (${result.address.state}) com seguro contra quebra!`)
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Erro ao consultar CEP.'
+    toast.error(message)
   } finally {
     isSearchingCep.value = false
   }
@@ -124,7 +145,7 @@ const finalTotal = computed(() => {
 async function finalizeOrder() {
   isSubmitting.value = true
   try {
-    await orderService.createOrder({
+    const newOrder = await orderService.createOrder({
       customer: {
         name: customerName.value || 'Colecionador do Mar',
         email: customerEmail.value || 'cliente@leveomar.com.br',
@@ -156,7 +177,9 @@ async function finalizeOrder() {
       total: finalTotal.value
     })
 
-    orderNumber.value = `LOM-${Math.floor(100000 + Math.random() * 900000)}`
+    createdOrder.value = newOrder
+    orderNumber.value = newOrder.orderNumber
+    ordersStore.addOrder(newOrder)
     currentStep.value = 4
 
     // Disparar celebração sensorial de confetti
@@ -168,7 +191,7 @@ async function finalizeOrder() {
     })
 
     cartStore.clearCart()
-  } catch (err) {
+  } catch {
     toast.error('Erro ao processar pedido. Tente novamente.')
   } finally {
     isSubmitting.value = false
@@ -176,6 +199,22 @@ async function finalizeOrder() {
 }
 
 onMounted(() => {
+  if (authStore.user) {
+    customerName.value = authStore.user.name
+    customerEmail.value = authStore.user.email
+    customerPhone.value = authStore.user.phone || ''
+    customerCpf.value = authStore.user.cpf || ''
+    const defaultAddr = authStore.user.addresses?.find((a) => a.isDefault) || authStore.user.addresses?.[0]
+    if (defaultAddr) {
+      cep.value = defaultAddr.cep
+      street.value = defaultAddr.street
+      number.value = defaultAddr.number
+      complement.value = defaultAddr.complement || ''
+      neighborhood.value = defaultAddr.neighborhood
+      city.value = defaultAddr.city
+      state.value = defaultAddr.state
+    }
+  }
   searchCep()
 })
 </script>
@@ -220,6 +259,10 @@ onMounted(() => {
         <div class="p-4 bg-[#F7F4EE] rounded-2xl border border-[#E6E1D6] inline-block space-y-1">
           <div class="text-[11px] text-[#5A738E] uppercase tracking-wider font-semibold">Código do Pedido</div>
           <div class="font-mono text-xl font-bold text-[#0B3C5D] tracking-widest">{{ orderNumber }}</div>
+          <div v-if="createdOrder" class="pt-2 border-t border-[#D9D3C7] text-xs text-[#4F6D7A]">
+            <span>Código de Rastreamento: </span>
+            <span class="font-mono font-bold text-[#0A2B42]">{{ createdOrder.trackingCode }}</span>
+          </div>
         </div>
 
         <div class="p-4 rounded-2xl bg-[#EBE7DE]/50 border border-[#D6CFC0] text-xs text-[#5A738E] max-w-md mx-auto text-left space-y-2">
@@ -228,17 +271,33 @@ onMounted(() => {
             <span>Garantia de Envio de Vidro Protegido</span>
           </div>
           <p>
-            Sua garrafa está sendo lacrada e embalada em casulo antiimpacto. O código de rastreamento dos Correios será atualizado em breve.
+            Sua garrafa está sendo lacrada e embalada em casulo antiimpacto. O código de rastreamento da expedição marítima já está ativo.
           </p>
         </div>
 
-        <div class="pt-4">
-          <router-link
-            to="/"
-            class="px-8 py-3.5 bg-[#0B3C5D] hover:bg-[#0A2B42] text-white text-xs font-bold rounded-full shadow-lg transition-all inline-block"
+        <div class="pt-4 flex flex-wrap justify-center gap-3">
+          <RouterLink
+            :to="`/rastreio/${createdOrder?.trackingCode || orderNumber}`"
+            class="px-6 py-3.5 bg-[#0B3C5D] hover:bg-[#0A2B42] text-white text-xs font-bold rounded-full shadow-lg transition-all inline-flex items-center gap-2 cursor-pointer"
           >
-            Voltar para a Página Inicial
-          </router-link>
+            <Truck :size="16" />
+            <span>Acompanhar Expedição</span>
+          </RouterLink>
+
+          <RouterLink
+            to="/conta?tab=pedidos"
+            class="px-6 py-3.5 border border-[#0B3C5D] text-[#0B3C5D] hover:bg-[#0B3C5D] hover:text-white text-xs font-bold rounded-full transition-all inline-flex items-center gap-2 cursor-pointer"
+          >
+            <Package :size="16" />
+            <span>Ver Garrafas no Farol</span>
+          </RouterLink>
+
+          <RouterLink
+            to="/"
+            class="px-6 py-3.5 text-[#5A738E] hover:text-[#0A2B42] text-xs font-semibold rounded-full transition-all inline-flex items-center gap-2 cursor-pointer"
+          >
+            <span>Início</span>
+          </RouterLink>
         </div>
       </div>
 
@@ -259,10 +318,11 @@ onMounted(() => {
               <!-- Botão Preencher Demo -->
               <button
                 type="button"
-                class="text-[11px] font-bold text-[#E86A58] hover:underline cursor-pointer bg-[#FDF3F1] px-2.5 py-1 rounded-full border border-[#E86A58]/30"
+                class="text-[11px] font-bold text-[#E86A58] hover:underline cursor-pointer bg-[#FDF3F1] px-3 py-1 rounded-full border border-[#E86A58]/30 flex items-center gap-1.5"
                 @click="fillDemoUser"
               >
-                ⚡ Preencher Conta Demo
+                <ShieldCheck :size="13" />
+                <span>Preencher Conta Demo</span>
               </button>
             </div>
 

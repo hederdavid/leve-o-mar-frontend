@@ -4,6 +4,7 @@ import NavbarHeader from '@/components/layout/NavbarHeader.vue'
 import EcommerceHeroSlider from '@/components/home/EcommerceHeroSlider.vue'
 import TrustBar from '@/components/home/TrustBar.vue'
 import SeasonCollection from '@/components/home/SeasonCollection.vue'
+import BundleBuilderSection from '@/components/home/BundleBuilderSection.vue'
 import DestinationsMapSection from '@/components/home/DestinationsMapSection.vue'
 import SensoryUnboxingSection from '@/components/home/SensoryUnboxingSection.vue'
 import SocialGallerySection from '@/components/home/SocialGallerySection.vue'
@@ -28,6 +29,9 @@ const isSearchOpen = ref(false)
 
       <!-- Vitrine de Produtos da Temporada -->
       <SeasonCollection />
+
+      <!-- Construtor Interativo do Trio do Litoral (15% OFF) -->
+      <BundleBuilderSection />
 
       <!-- Mapa Interativo do Litoral -->
       <DestinationsMapSection />

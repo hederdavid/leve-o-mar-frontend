@@ -3,13 +3,14 @@ import { ref, onMounted } from 'vue'
 import { productService } from '@/services/productService'
 import type { Product, ProductFilterParams } from '@/types/product'
 import { useCartStore } from '@/stores/cart'
+import { useWishlistStore } from '@/stores/wishlist'
 import NavbarHeader from '@/components/layout/NavbarHeader.vue'
 import FooterNavigation from '@/components/layout/FooterNavigation.vue'
 import FilterSidebar from '@/components/catalog/FilterSidebar.vue'
 import BottleVisual from '@/components/common/BottleVisual.vue'
 import SearchModal from '@/components/common/SearchModal.vue'
 import CartDrawer from '@/components/common/CartDrawer.vue'
-import { Plus, ArrowUpDown } from 'lucide-vue-next'
+import { Plus, ArrowUpDown, Heart } from 'lucide-vue-next'
 
 const isSearchOpen = ref(false)
 const isLoading = ref(true)
@@ -19,6 +20,7 @@ const sortBy = ref<'popular' | 'price-asc' | 'price-desc' | 'rating'>('popular')
 const currentParams = ref<ProductFilterParams>({})
 
 const cartStore = useCartStore()
+const wishlistStore = useWishlistStore()
 
 async function loadProducts() {
   isLoading.value = true
@@ -29,8 +31,6 @@ async function loadProducts() {
     })
     products.value = res.products
     total.value = res.total
-  } catch (err) {
-    console.error('Erro ao carregar catálogo:', err)
   } finally {
     isLoading.value = false
   }
@@ -121,6 +121,16 @@ onMounted(() => {
               :key="product.id"
               class="card-maritimo flex flex-col justify-between p-5 relative overflow-hidden group"
             >
+              <button
+                type="button"
+                :aria-label="wishlistStore.isInWishlist(product.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'"
+                class="absolute top-4 left-4 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-90"
+                :class="wishlistStore.isInWishlist(product.id) ? 'text-[#E86A58]' : 'text-[#8A9BA8] hover:text-[#0A2B42]'"
+                @click.stop="wishlistStore.toggleWishlist(product)"
+              >
+                <Heart :size="16" :fill="wishlistStore.isInWishlist(product.id) ? 'currentColor' : 'none'" />
+              </button>
+
               <div
                 v-if="product.isLimitedEdition"
                 class="absolute top-4 right-4 z-20 px-2.5 py-0.5 rounded-full bg-[#E86A58] text-white text-[10px] font-bold tracking-wider uppercase shadow-sm"

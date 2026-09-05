@@ -3,7 +3,12 @@ import type { Product } from './product'
 export interface CartCustomization {
   giftMessage?: string
   recipientName?: string
+  dedicationText?: string
   includeCollectorCertificate?: boolean
+  glassType?: string
+  fontStyle?: 'serif' | 'cursive' | 'sans'
+  corkType?: string
+  waxSealColor?: string
 }
 
 export interface CartItem {
