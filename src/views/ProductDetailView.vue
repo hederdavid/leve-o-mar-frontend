@@ -15,6 +15,8 @@ import BottleVisual from '@/components/common/BottleVisual.vue'
 import SearchModal from '@/components/common/SearchModal.vue'
 import CartDrawer from '@/components/common/CartDrawer.vue'
 import { ChevronRight, ArrowLeft } from 'lucide-vue-next'
+import { useSeo } from '@/composables/useSeo'
+import { analytics } from '@/services/analytics'
 
 const route = useRoute()
 const router = useRouter()
@@ -35,6 +37,23 @@ async function loadProductData(slug: string) {
   try {
     const data = await productService.getBySlug(slug)
     product.value = data
+
+    useSeo({
+      title: `${data.name} · Destino ${data.beachName} (${data.uf})`,
+      description: `${data.tagline} Frasco ${data.volume} em ${data.glassFinish} com rolha selada e certificado.`,
+      image: data.bottleImage,
+      type: 'product'
+    })
+
+    analytics.track('view_product', {
+      id: data.id,
+      name: data.name,
+      beach: data.beachName,
+      uf: data.uf,
+      price: data.price,
+      category: data.categoryTag,
+      waterType: data.waterType
+    })
 
     // Buscar avaliações e garrafas relacionadas
     const [revs, stats, related] = await Promise.all([
@@ -87,7 +106,7 @@ watch(
   <div class="min-h-screen flex flex-col bg-[#F7F4EE] text-[#0A2B42]">
     <NavbarHeader @open-search="isSearchOpen = true" />
 
-    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    <main id="main-content" class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
       
       <!-- Estado de Carregamento -->
       <div v-if="isLoading" class="py-24 text-center space-y-4">

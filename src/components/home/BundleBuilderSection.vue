@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   Check
 } from 'lucide-vue-next'
+import { analytics } from '@/services/analytics'
 
 const cartStore = useCartStore()
 
@@ -80,6 +81,13 @@ function handleAddBundleToCart() {
         includeCollectorCertificate: true
       })
     }
+  })
+
+  analytics.track('bundle_created', {
+    beaches: selectedBottles.value.map((b) => b?.beachName),
+    originalTotal: originalTotal.value,
+    discountAmount: discountAmount.value,
+    bundleTotal: bundleTotal.value
   })
 
   confetti({

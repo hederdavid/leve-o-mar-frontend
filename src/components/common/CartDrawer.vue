@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { mockAccessories } from '@/mocks/accessories'
@@ -50,10 +50,24 @@ function goToCheckout() {
   router.push('/checkout')
 }
 
+function goToFullCart() {
+  cartStore.closeDrawer()
+  router.push('/carrinho')
+}
+
 function handleFinish() {
   isSuccessOrder.value = false
   cartStore.closeDrawer()
 }
+
+function handleKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && cartStore.isDrawerOpen) {
+    cartStore.closeDrawer()
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', handleKeyDown))
+onUnmounted(() => window.removeEventListener('keydown', handleKeyDown))
 </script>
 
 <template>
@@ -123,8 +137,35 @@ function handleFinish() {
           </div>
         </div>
 
-        <!-- Lista de Itens do Carrinho -->
         <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 sm:space-y-4">
+          <div
+            v-if="cartStore.lastAddedItem && cartStore.items.length > 0"
+            class="p-3.5 rounded-2xl bg-emerald-50/90 border border-emerald-200 text-xs text-[#0A2B42] space-y-1.5 shadow-sm"
+            role="status"
+          >
+            <div class="flex items-center justify-between">
+              <span class="inline-flex items-center gap-1.5 font-bold text-emerald-800 uppercase tracking-wider text-[10px]">
+                <CheckCircle2 :size="14" class="text-emerald-600" />
+                <span>Produto Adicionado ao Carrinho</span>
+              </span>
+              <span class="text-[10px] font-mono font-semibold text-emerald-700">1x incluído agora</span>
+            </div>
+            <p class="font-serif-editorial font-bold text-sm text-[#0A2B42]">
+              {{ cartStore.lastAddedItem.product.name }} ({{ cartStore.lastAddedItem.product.beachName }})
+            </p>
+            <p
+              v-if="cartStore.lastAddedItem.customization?.glassType || cartStore.lastAddedItem.customization?.recipientName"
+              class="text-[11px] text-[#5A738E]"
+            >
+              <span v-if="cartStore.lastAddedItem.customization?.glassType">
+                Variação: <strong>{{ cartStore.lastAddedItem.customization.glassType }}</strong>
+              </span>
+              <span v-if="cartStore.lastAddedItem.customization?.recipientName">
+                · Rótulo: <strong>{{ cartStore.lastAddedItem.customization.recipientName }}</strong>
+              </span>
+            </p>
+          </div>
+
           <div v-if="isSuccessOrder" class="py-12 text-center space-y-4">
             <div class="w-16 h-16 bg-[#F59E0B]/20 text-[#D97706] rounded-full flex items-center justify-center mx-auto shadow-inner">
               <Sparkles :size="32" />
@@ -207,28 +248,29 @@ function handleFinish() {
                   {{ item.product.categoryTag }} · {{ item.product.uf }}
                 </span>
 
-                <!-- Mensagem de Presente Customizada -->
                 <div
-                  v-if="item.customization?.recipientName || item.customization?.giftMessage"
+                  v-if="item.customization?.glassType || item.customization?.recipientName || item.customization?.giftMessage || item.customization?.dedicationText"
                   class="mt-1 p-1.5 bg-[#F7F4EE] rounded-lg border border-[#EBE7DE] text-[9px] text-[#5A738E] space-y-0.5"
                 >
+                  <span v-if="item.customization.glassType" class="font-semibold text-[#0A2B42] block truncate">
+                    Frasco: {{ item.customization.glassType }}
+                  </span>
                   <span v-if="item.customization.recipientName" class="font-bold text-[#0B3C5D] block truncate">
                     Para: {{ item.customization.recipientName }}
                   </span>
-                  <span v-if="item.customization.giftMessage" class="italic block truncate">
-                    "{{ item.customization.giftMessage }}"
+                  <span v-if="item.customization.giftMessage || item.customization.dedicationText" class="italic block truncate">
+                    "{{ item.customization.giftMessage || item.customization.dedicationText }}"
                   </span>
                 </div>
               </div>
 
-              <!-- Quantidade & Preço -->
               <div class="flex items-center justify-between mt-2 pt-1 border-t border-[#F0EDE4]">
                 <div class="flex items-center border border-[#D6CFC0] rounded-full bg-white px-1 py-0.5">
                   <button
                     type="button"
                     aria-label="Diminuir quantidade"
                     class="w-8 h-8 flex items-center justify-center text-[#0A2B42] hover:bg-[#EBE7DE] rounded-full transition-colors cursor-pointer"
-                    @click="cartStore.updateQuantity(item.id, item.quantity - 1)"
+                    @click="cartStore.updateQuantity(item.id, -1)"
                   >
                     <Minus :size="12" />
                   </button>
@@ -237,7 +279,7 @@ function handleFinish() {
                     type="button"
                     aria-label="Aumentar quantidade"
                     class="w-8 h-8 flex items-center justify-center text-[#0A2B42] hover:bg-[#EBE7DE] rounded-full transition-colors cursor-pointer"
-                    @click="cartStore.updateQuantity(item.id, item.quantity + 1)"
+                    @click="cartStore.updateQuantity(item.id, 1)"
                   >
                     <Plus :size="12" />
                   </button>
@@ -319,14 +361,25 @@ function handleFinish() {
             </div>
           </div>
 
-          <button
-            type="button"
-            class="w-full py-4 bg-[#0B3C5D] hover:bg-[#0A2B42] text-white font-bold text-xs sm:text-sm rounded-full shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer min-h-[48px]"
-            @click="goToCheckout"
-          >
-            <span>Prosseguir para o Checkout Seguro</span>
-            <ArrowRight :size="16" />
-          </button>
+          <div class="grid grid-cols-1 gap-2">
+            <button
+              type="button"
+              class="w-full py-3 bg-[#F7F4EE] hover:bg-[#EBE7DE] text-[#0B3C5D] border border-[#D6CFC0] font-bold text-xs rounded-full transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[44px]"
+              @click="goToFullCart"
+            >
+              <ShoppingBag :size="15" />
+              <span>Ver Carrinho Completo & Calcular Frete</span>
+            </button>
+
+            <button
+              type="button"
+              class="w-full py-3.5 bg-[#0B3C5D] hover:bg-[#0A2B42] text-white font-bold text-xs sm:text-sm rounded-full shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer min-h-[48px]"
+              @click="goToCheckout"
+            >
+              <span>Prosseguir para o Checkout Seguro</span>
+              <ArrowRight :size="16" />
+            </button>
+          </div>
         </div>
 
       </div>

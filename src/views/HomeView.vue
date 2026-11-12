@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import NavbarHeader from '@/components/layout/NavbarHeader.vue'
 import EcommerceHeroSlider from '@/components/home/EcommerceHeroSlider.vue'
 import TrustBar from '@/components/home/TrustBar.vue'
@@ -13,40 +14,44 @@ import FooterNavigation from '@/components/layout/FooterNavigation.vue'
 import SearchModal from '@/components/common/SearchModal.vue'
 import CartDrawer from '@/components/common/CartDrawer.vue'
 
+const route = useRoute()
 const isSearchOpen = ref(false)
+const searchInitialQuery = ref('')
+
+watch(
+  () => route.query.busca,
+  (busca) => {
+    if (typeof busca === 'string' && busca.trim()) {
+      searchInitialQuery.value = busca.trim()
+      isSearchOpen.value = true
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
   <div class="min-h-screen flex flex-col bg-[#F7F4EE] text-[#0A2B42]">
-    <NavbarHeader @open-search="isSearchOpen = true" />
+    <NavbarHeader @open-search="searchInitialQuery = ''; isSearchOpen = true" />
 
-    <main class="flex-grow">
-      <!-- Carrossel Promocional de Alto Impacto -->
+    <main id="main-content" class="flex-grow">
       <EcommerceHeroSlider />
-      
-      <!-- Barra de Benefícios & Confiança do E-commerce -->
       <TrustBar />
-
-      <!-- Vitrine de Produtos da Temporada -->
       <SeasonCollection />
-
-      <!-- Construtor Interativo do Trio do Litoral (15% OFF) -->
       <BundleBuilderSection />
-
-      <!-- Mapa Interativo do Litoral -->
       <DestinationsMapSection />
-
-      <!-- Unboxing Sensorial & Envio Seguro -->
       <SensoryUnboxingSection />
-
-      <!-- Galeria Social & Depoimentos -->
       <SocialGallerySection />
       <TestimonialsSection />
     </main>
 
     <FooterNavigation />
 
-    <SearchModal :is-open="isSearchOpen" @close="isSearchOpen = false" />
+    <SearchModal
+      :is-open="isSearchOpen"
+      :initial-query="searchInitialQuery"
+      @close="isSearchOpen = false"
+    />
     <CartDrawer />
   </div>
 </template>

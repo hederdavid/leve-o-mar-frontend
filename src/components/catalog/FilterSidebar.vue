@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import type { BrazilianRegion, WaterType } from '@/types/beach'
 import type { ProductFilterParams } from '@/types/product'
-import { Filter, RotateCcw, ChevronDown, ChevronUp } from 'lucide-vue-next'
+import { Filter, RotateCcw } from 'lucide-vue-next'
 
 const emit = defineEmits<{
   (e: 'filterChange', params: ProductFilterParams): void
 }>()
 
+const route = useRoute()
 const isOpenOnMobile = ref(false)
 const selectedRegion = ref<BrazilianRegion | ''>('')
 const selectedWaterType = ref<WaterType | ''>('')
@@ -38,6 +40,13 @@ function resetFilters() {
   maxPrice.value = 250
   emitFilter()
 }
+
+onMounted(() => {
+  const regQuery = String(route.query.regiao || '') as BrazilianRegion
+  if (regions.includes(regQuery)) {
+    selectedRegion.value = regQuery
+  }
+})
 
 watch([selectedRegion, selectedWaterType, onlyLimited, maxPrice], emitFilter)
 </script>

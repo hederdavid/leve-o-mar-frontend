@@ -3,9 +3,12 @@ import { RouterView } from 'vue-router'
 import { Toaster } from 'vue-sonner'
 import CookieConsentBanner from '@/components/common/CookieConsentBanner.vue'
 import SocialProofToast from '@/components/common/SocialProofToast.vue'
+import SkipToContent from '@/components/common/SkipToContent.vue'
+import VLibrasWidget from '@/components/common/VLibrasWidget.vue'
 </script>
 
 <template>
+  <SkipToContent />
   <Toaster
     position="top-right"
     :toast-options="{
@@ -20,4 +23,5 @@ import SocialProofToast from '@/components/common/SocialProofToast.vue'
   <RouterView />
   <CookieConsentBanner />
   <SocialProofToast />
+  <VLibrasWidget />
 </template>

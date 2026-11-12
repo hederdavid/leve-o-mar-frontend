@@ -3,18 +3,22 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { mockProducts } from '@/mocks/products'
 import type { Product } from '@/types/product'
 import { useCartStore } from '@/stores/cart'
-import { Search, X, Plus, TrendingUp, Compass, Sparkles, MapPin, ArrowRight } from 'lucide-vue-next'
+import { Search as SearchIcon, X, Plus, TrendingUp, Compass, Sparkles, MapPin, ArrowRight } from 'lucide-vue-next'
+import { analytics } from '@/services/analytics'
 
 interface Props {
   isOpen: boolean
+  initialQuery?: string
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  initialQuery: ''
+})
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
-const searchQuery = ref('')
+const searchQuery = ref(props.initialQuery || '')
 const searchInput = ref<HTMLInputElement | null>(null)
 const cartStore = useCartStore()
 
@@ -43,29 +47,56 @@ function selectTag(tag: string) {
   searchQuery.value = tag
 }
 
-watch(searchQuery, (query) => {
-  const q = query.trim().toLowerCase()
-  if (!q) {
-    searchResults.value = []
-    return
-  }
-  searchResults.value = mockProducts.filter(
-    (p) =>
-      p.beachName.toLowerCase().includes(q) ||
-      p.state.toLowerCase().includes(q) ||
-      p.city.toLowerCase().includes(q) ||
-      p.categoryTag.toLowerCase().includes(q) ||
-      p.waterType.toLowerCase().includes(q)
-  )
-})
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+
+watch(
+  searchQuery,
+  (query) => {
+    const q = query.trim().toLowerCase()
+    if (!q) {
+      searchResults.value = []
+      return
+    }
+    searchResults.value = mockProducts.filter(
+      (p) =>
+        p.beachName.toLowerCase().includes(q) ||
+        p.state.toLowerCase().includes(q) ||
+        p.city.toLowerCase().includes(q) ||
+        p.categoryTag.toLowerCase().includes(q) ||
+        p.waterType.toLowerCase().includes(q)
+    )
+
+    if (searchTimer) clearTimeout(searchTimer)
+    searchTimer = setTimeout(() => {
+      analytics.track('search_query', {
+        query: q,
+        resultsCount: searchResults.value.length
+      })
+    }, 400)
+  },
+  { immediate: true }
+)
 
 watch(
   () => props.isOpen,
   (open) => {
     if (open) {
+      if (props.initialQuery) {
+        searchQuery.value = props.initialQuery
+      }
       setTimeout(() => searchInput.value?.focus(), 100)
-    } else {
+    } else if (!props.initialQuery) {
       searchQuery.value = ''
+    }
+  },
+  { immediate: true }
+)
+
+watch(
+  () => props.initialQuery,
+  (q) => {
+    if (q !== undefined && props.isOpen) {
+      searchQuery.value = q
     }
   }
 )
@@ -85,14 +116,20 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeyDown))
     <div v-if="isOpen" class="fixed inset-0 z-[9999] flex flex-col items-center pt-8 sm:pt-16 px-4 bg-[#0A2B42]/70 backdrop-blur-md animate-fade-in">
       <div class="w-full max-w-2xl bg-[#F7F4EE] rounded-2xl shadow-2xl border border-[#E6E1D6] overflow-hidden flex flex-col max-h-[85vh]">
         
-        <!-- Campo de Pesquisa -->
-        <div class="flex items-center px-5 py-4 border-b border-[#E6E1D6] gap-3 bg-white">
-          <Search :size="20" class="text-[#0B3C5D] flex-shrink-0" />
+        <search class="flex items-center px-5 py-4 border-b border-[#E6E1D6] gap-3 bg-white">
+          <label for="global-search-input" class="sr-only">Buscar destinos ou praias</label>
+          <SearchIcon :size="20" class="text-[#0B3C5D] flex-shrink-0" />
           
           <input
+            id="global-search-input"
             ref="searchInput"
             v-model="searchQuery"
-            type="text"
+            name="q"
+            type="search"
+            autocorrect="off"
+            autocapitalize="none"
+            spellcheck="false"
+            enterkeyhint="search"
             placeholder="Buscar por praia, estado, piscinas naturais..."
             class="w-full bg-transparent text-[#0A2B42] text-sm sm:text-base placeholder-[#5A738E]/70 focus:outline-none font-medium"
           />
@@ -109,7 +146,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeyDown))
           >
             <X :size="20" />
           </button>
-        </div>
+        </search>
 
         <div class="flex-1 overflow-y-auto p-5 space-y-6">
           
@@ -162,7 +199,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeyDown))
                   <span>Garrafas Mais Desejadas</span>
                 </div>
                 <router-link
-                  to="/catalogo"
+                  to="/colecao"
                   class="text-[#0B3C5D] hover:underline text-[11px] normal-case font-bold flex items-center gap-0.5 cursor-pointer"
                   @click="emit('close')"
                 >

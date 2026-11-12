@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import type { Product } from '@/types/product'
 import { useCartStore } from '@/stores/cart'
 import { useWishlistStore } from '@/stores/wishlist'
@@ -33,13 +34,52 @@ const emit = defineEmits<{
   (e: 'scrollToReviews'): void
 }>()
 
+const route = useRoute()
 const cartStore = useCartStore()
 const wishlistStore = useWishlistStore()
 
 const quantity = ref(1)
+const selectedGlassVariation = ref<'Cristal Lapidado' | 'Fosco Sea Glass' | 'Âmbar Naval'>('Cristal Lapidado')
+const selectedSealColor = ref<'Azul Oceano' | 'Dourado Solar' | 'Coral Costeiro'>('Dourado Solar')
+const selectedFontStyle = ref<'cursive' | 'serif' | 'sans'>('cursive')
 const isCustomGift = ref(false)
 const giftMessage = ref('')
 const recipientName = ref('')
+
+const glassVariations: Array<{ id: 'Cristal Lapidado' | 'Fosco Sea Glass' | 'Âmbar Naval'; label: string; badge: string }> = [
+  { id: 'Cristal Lapidado', label: 'Cristal Lapidado 500ml', badge: 'Clássico' },
+  { id: 'Fosco Sea Glass', label: 'Fosco Sea Glass 500ml', badge: 'Texturizado' },
+  { id: 'Âmbar Naval', label: 'Âmbar Naval UV 500ml', badge: 'Colecionador' }
+]
+
+const sealOptions: Array<{ id: 'Azul Oceano' | 'Dourado Solar' | 'Coral Costeiro'; hex: string }> = [
+  { id: 'Dourado Solar', hex: '#D97706' },
+  { id: 'Azul Oceano', hex: '#0B3C5D' },
+  { id: 'Coral Costeiro', hex: '#E86A58' }
+]
+
+function fillSampleCustomization() {
+  selectedGlassVariation.value = 'Fosco Sea Glass'
+  selectedSealColor.value = 'Dourado Solar'
+  selectedFontStyle.value = 'cursive'
+  isCustomGift.value = true
+  recipientName.value = 'Para Marina Costa Navegante'
+  giftMessage.value = `Que a calmaria e a luz das águas de ${props.product.beachName} estejam sempre por perto.`
+}
+
+watch(
+  () => route.query.personalizar,
+  (val) => {
+    if (val === '1' || val === 'true') {
+      fillSampleCustomization()
+    } else {
+      isCustomGift.value = false
+      recipientName.value = ''
+      giftMessage.value = ''
+    }
+  },
+  { immediate: true }
+)
 
 const shippingCep = ref('')
 const isCalculatingShipping = ref(false)
@@ -93,7 +133,12 @@ function decrement() {
 function handleAddToCart() {
   cartStore.addItem(props.product, {
     giftMessage: isCustomGift.value ? giftMessage.value : undefined,
+    dedicationText: isCustomGift.value ? giftMessage.value : undefined,
     recipientName: isCustomGift.value ? recipientName.value : undefined,
+    glassType: selectedGlassVariation.value,
+    corkType: `Rolha de Cortiça com Lacre ${selectedSealColor.value}`,
+    waxSealColor: selectedSealColor.value,
+    fontStyle: selectedFontStyle.value,
     includeCollectorCertificate: true
   })
 }
@@ -167,31 +212,142 @@ function handleAddToCart() {
       </p>
     </div>
 
-    <!-- Personalização de Presente no Rótulo -->
-    <div class="pt-2 border-t border-[#E6E1D6]">
-      <label class="flex items-center gap-2 text-xs font-bold text-[#0A2B42] cursor-pointer">
-        <input
-          v-model="isCustomGift"
-          type="checkbox"
-          class="rounded text-[#0B3C5D] focus:ring-[#0B3C5D]"
-        />
-        <Gift :size="15" class="text-[#E86A58]" />
-        <span>Gravar dedicatória personalizada no rótulo (+ Cortesia)</span>
-      </label>
+    <div class="pt-3 border-t border-[#E6E1D6] space-y-4">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-[#0A2B42] uppercase tracking-wider">
+            Acabamento do Vidro
+          </span>
+          <span class="text-[11px] font-semibold text-[#0B3C5D]">{{ selectedGlassVariation }}</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <button
+            v-for="v in glassVariations"
+            :key="v.id"
+            type="button"
+            class="p-2.5 rounded-xl border text-left transition-all cursor-pointer"
+            :class="
+              selectedGlassVariation === v.id
+                ? 'border-[#0B3C5D] bg-[#0B3C5D] text-white shadow-sm'
+                : 'border-[#D6CFC0] bg-white text-[#0A2B42] hover:bg-[#F7F4EE]'
+            "
+            @click="selectedGlassVariation = v.id"
+          >
+            <span class="text-[10px] uppercase tracking-wider block opacity-75">{{ v.badge }}</span>
+            <span class="text-xs font-bold block mt-0.5">{{ v.label }}</span>
+          </button>
+        </div>
+      </div>
 
-      <div v-if="isCustomGift" class="mt-3 space-y-2.5 p-3.5 bg-white rounded-xl border border-[#E6E1D6] animate-fade-in">
-        <input
-          v-model="recipientName"
-          type="text"
-          placeholder="Nome do presenteado (ex: Para Mariana)"
-          class="w-full text-xs px-3 py-2 rounded-lg bg-[#F7F4EE] border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D]"
-        />
-        <textarea
-          v-model="giftMessage"
-          rows="2"
-          placeholder="Mensagem afetiva para o rótulo da garrafa..."
-          class="w-full text-xs px-3 py-2 rounded-lg bg-[#F7F4EE] border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D]"
-        />
+      <div>
+        <span class="text-xs font-bold text-[#0A2B42] uppercase tracking-wider block mb-2">
+          Lacre de Cera Naval na Rolha
+        </span>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="seal in sealOptions"
+            :key="seal.id"
+            type="button"
+            class="px-3 py-1.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer"
+            :class="
+              selectedSealColor === seal.id
+                ? 'border-[#0A2B42] bg-white text-[#0A2B42] ring-2 ring-[#0B3C5D]/20 shadow-sm'
+                : 'border-[#D6CFC0] bg-[#F7F4EE] text-[#5A738E] hover:bg-white'
+            "
+            @click="selectedSealColor = seal.id"
+          >
+            <span class="w-3 h-3 rounded-full border border-black/10" :style="{ backgroundColor: seal.hex }" />
+            <span>{{ seal.id }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-[#F0EDE4]">
+        <div class="flex items-center justify-between gap-2">
+          <label class="flex items-center gap-2 text-xs font-bold text-[#0A2B42] cursor-pointer">
+            <input
+              v-model="isCustomGift"
+              type="checkbox"
+              class="rounded text-[#0B3C5D] focus:ring-[#0B3C5D]"
+            />
+            <Gift :size="15" class="text-[#E86A58]" />
+            <span>Personalizar Rótulo com Dedicatória (Cortesia)</span>
+          </label>
+
+          <button
+            type="button"
+            class="text-[11px] font-semibold text-[#0B3C5D] hover:text-[#E86A58] underline cursor-pointer"
+            @click="fillSampleCustomization"
+          >
+            Sugerir dedicatória desta praia
+          </button>
+        </div>
+
+        <div v-if="isCustomGift" class="mt-3 space-y-3 p-4 bg-white rounded-2xl border border-[#E6E1D6] shadow-sm animate-fade-in">
+          <div>
+            <label for="gift-recipient" class="text-[11px] font-bold text-[#5A738E] block mb-1">
+              Nome no Rótulo (Destinatário ou Colecionador)
+            </label>
+            <input
+              id="gift-recipient"
+              v-model="recipientName"
+              type="text"
+              placeholder="Ex: Para Marina Costa Navegante"
+              class="w-full text-xs px-3 py-2 rounded-lg bg-[#F7F4EE] border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D]"
+            />
+          </div>
+
+          <div>
+            <label for="gift-message" class="text-[11px] font-bold text-[#5A738E] block mb-1">
+              Dedicatória Caligrafada no Papel de Algodão
+            </label>
+            <textarea
+              id="gift-message"
+              v-model="giftMessage"
+              rows="2"
+              placeholder="Mensagem afetiva para o rótulo da garrafa..."
+              class="w-full text-xs px-3 py-2 rounded-lg bg-[#F7F4EE] border border-[#D6CFC0] focus:outline-none focus:ring-1 focus:ring-[#0B3C5D]"
+            />
+          </div>
+
+          <div class="flex items-center justify-between pt-1">
+            <span class="text-[11px] font-semibold text-[#5A738E]">Estilo da Caligrafia:</span>
+            <div class="flex gap-1.5">
+              <button
+                type="button"
+                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold border cursor-pointer"
+                :class="selectedFontStyle === 'cursive' ? 'bg-[#0B3C5D] text-white border-[#0B3C5D]' : 'bg-[#F7F4EE] text-[#5A738E] border-[#D6CFC0]'"
+                @click="selectedFontStyle = 'cursive'"
+              >
+                Manuscrita
+              </button>
+              <button
+                type="button"
+                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold border cursor-pointer"
+                :class="selectedFontStyle === 'serif' ? 'bg-[#0B3C5D] text-white border-[#0B3C5D]' : 'bg-[#F7F4EE] text-[#5A738E] border-[#D6CFC0]'"
+                @click="selectedFontStyle = 'serif'"
+              >
+                Clássica Serif
+              </button>
+              <button
+                type="button"
+                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold border cursor-pointer"
+                :class="selectedFontStyle === 'sans' ? 'bg-[#0B3C5D] text-white border-[#0B3C5D]' : 'bg-[#F7F4EE] text-[#5A738E] border-[#D6CFC0]'"
+                @click="selectedFontStyle = 'sans'"
+              >
+                Minimalista
+              </button>
+            </div>
+          </div>
+
+          <div v-if="recipientName || giftMessage" class="p-3 rounded-xl bg-[#F7F4EE] border border-[#D6CFC0] space-y-1">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-[#D97706] block">
+              Preview do Rótulo Personalizado ({{ selectedGlassVariation }} · Lacre {{ selectedSealColor }})
+            </span>
+            <p class="text-xs font-bold text-[#0A2B42]">{{ recipientName || 'Colecionador do Mar' }}</p>
+            <p class="text-xs italic text-[#5A738E]">"{{ giftMessage }}"</p>
+          </div>
+        </div>
       </div>
     </div>
 

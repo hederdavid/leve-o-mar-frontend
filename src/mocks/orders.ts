@@ -7,18 +7,18 @@ export const mockOrders: Order[] = [
     orderNumber: 'LOM-849201',
     trackingCode: 'LOM-BR-849201BR',
     customer: {
-      name: 'Heder Moreira David',
-      email: 'heder@leveomar.com.br',
-      phone: '(77) 99876-5432',
-      cpf: '123.456.789-00'
+      name: 'Marina Costa Navegante',
+      email: 'marina.navegante@exemplo.com.br',
+      phone: '(71) 99812-3456',
+      cpf: '111.222.333-44'
     },
     shippingAddress: {
-      cep: '45000-000',
-      street: 'Avenida Beira Mar',
-      number: '1042',
-      complement: 'Apto 302',
-      neighborhood: 'Praia Nobre',
-      city: 'Vitória da Conquista',
+      cep: '40140-130',
+      street: 'Avenida Oceânica',
+      number: '240',
+      complement: 'Apto 502',
+      neighborhood: 'Barra',
+      city: 'Salvador',
       state: 'BA'
     },
     items: [
@@ -129,18 +129,18 @@ export const mockOrders: Order[] = [
     orderNumber: 'LOM-572190',
     trackingCode: 'LOM-BR-572190BR',
     customer: {
-      name: 'Heder Moreira David',
-      email: 'heder@leveomar.com.br',
-      phone: '(77) 99876-5432',
-      cpf: '123.456.789-00'
+      name: 'Marina Costa Navegante',
+      email: 'marina.navegante@exemplo.com.br',
+      phone: '(71) 99812-3456',
+      cpf: '111.222.333-44'
     },
     shippingAddress: {
-      cep: '45000-000',
-      street: 'Avenida Beira Mar',
-      number: '1042',
-      complement: 'Apto 302',
-      neighborhood: 'Praia Nobre',
-      city: 'Vitória da Conquista',
+      cep: '40140-130',
+      street: 'Avenida Oceânica',
+      number: '240',
+      complement: 'Apto 502',
+      neighborhood: 'Barra',
+      city: 'Salvador',
       state: 'BA'
     },
     items: [

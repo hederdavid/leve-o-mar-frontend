@@ -10,7 +10,7 @@ import FilterSidebar from '@/components/catalog/FilterSidebar.vue'
 import BottleVisual from '@/components/common/BottleVisual.vue'
 import SearchModal from '@/components/common/SearchModal.vue'
 import CartDrawer from '@/components/common/CartDrawer.vue'
-import { Plus, ArrowUpDown, Heart } from 'lucide-vue-next'
+import { Plus, ArrowUpDown, Heart, ChevronRight, Home } from 'lucide-vue-next'
 
 const isSearchOpen = ref(false)
 const isLoading = ref(true)
@@ -54,7 +54,19 @@ onMounted(() => {
   <div class="min-h-screen flex flex-col bg-[#F7F4EE] text-[#0A2B42]">
     <NavbarHeader @open-search="isSearchOpen = true" />
 
-    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+    <main id="main-content" class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+      <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs font-semibold text-[#5A738E] mb-6">
+        <router-link to="/" class="hover:text-[#0A2B42] flex items-center gap-1">
+          <Home :size="13" />
+          <span>Início</span>
+        </router-link>
+        <ChevronRight :size="12" />
+        <span class="text-[#0A2B42] font-bold">Coleção Completa</span>
+        <template v-if="currentParams.region">
+          <ChevronRight :size="12" />
+          <span class="text-[#E86A58] font-bold">Região {{ currentParams.region }}</span>
+        </template>
+      </nav>
       
       <!-- Cabeçalho do Catálogo -->
       <div class="mb-10 text-center max-w-2xl mx-auto">

@@ -91,7 +91,7 @@ onMounted(() => {
   <div class="min-h-screen flex flex-col bg-[#F7F4EE] text-[#0A2B42]">
     <NavbarHeader />
 
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+    <main id="main-content" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
       <div v-if="!authStore.isAuthenticated" class="max-w-md mx-auto text-center py-16 bg-white p-8 rounded-3xl border border-[#E6E1D6] shadow-sm">
         <div class="w-12 h-12 rounded-2xl bg-[#0A2B42] text-white flex items-center justify-center mx-auto mb-4">
           <Compass :size="24" />
